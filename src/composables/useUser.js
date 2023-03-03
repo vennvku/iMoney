@@ -1,12 +1,26 @@
 import { ref } from "vue";
-//import AuthServices from "../apis/modules/auth";
+import AuthServices from "../apis/modules/auth";
+
+const userStorage = JSON.parse(localStorage.getItem("user"));
 
 const user = ref(null);
 
-function getUser() {
-  return { user };
+if (userStorage) {
+  user.value = userStorage.user;
+}
+
+async function getUser() {
+  if (!user.value) {
+    try {
+      const response = await AuthServices.user(userStorage.user.id);
+
+      user.value = response.data.user;
+    } catch (err) {
+      console.log(err.message);
+    }
+  }
 }
 
 export function useUser() {
-  return { getUser };
+  return { getUser, user };
 }

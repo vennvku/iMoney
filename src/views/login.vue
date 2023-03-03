@@ -79,7 +79,7 @@ import { useSignIn } from "@/composables/useSignIn";
 
 export default {
   setup() {
-    const { error, isPending, signin } = useSignIn();
+    const { error, isPending, user, signin } = useSignIn();
     const email = ref("");
     const password = ref("");
 
@@ -87,7 +87,10 @@ export default {
 
     async function onSubmit() {
       await signin(email.value, password.value);
-      if (!error.value) router.push({ name: "Home", params: {} });
+      if (!error.value) {
+        localStorage.setItem("user", JSON.stringify(user.value));
+        router.push({ name: "Profile", params: {} });
+      }
     }
     return { email, password, error, isPending, onSubmit };
   },
