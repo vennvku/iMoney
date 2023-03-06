@@ -5,10 +5,10 @@
       <div class="bg-white rounded-lg py-4">
         <div class="container mx-auto px-8">
           <div class="row">
-            <label for="total" class="flex items-end">
+            <label for="total" class="flex items-center">
               <div class="w-10 text-right leading-10 mr-4 pb-1">
                 <span
-                  class="inline-block px-1 text-dark border border-dark rounded text-sm font-bold"
+                  class="inline-block px-1 pt-1 text-dark border border-dark rounded text-sm font-bold"
                   >USD</span
                 >
               </div>
@@ -22,6 +22,11 @@
                   placeholder="0"
                   v-model="total"
                 />
+                <span
+                  class="text-sm text-red"
+                  v-if="validateError.totalError"
+                  >{{ validateError.totalError }}</span
+                >
               </div>
             </label>
           </div>
@@ -38,27 +43,29 @@
               </div>
 
               <div
-                class="flex-1 border-b border-gray-100 py-3"
-                @click="selectCategory"
+                class="flex flex-1 flex-col border-b border-gray-100 py-3"
+                @click="choosedCategory"
               >
-                <input
-                  id="category"
-                  class="text-4l text-dark w-full outline-none"
-                  type="text"
-                  placeholder="Select a category"
-                  v-model="category"
-                />
+                <div class="flex flex-row">
+                  <div class="text-dark w-full">{{ categorySelected }}</div>
+                  <div class="">
+                    <i class="t2ico t2ico-arrow-right"></i>
+                  </div>
+                </div>
+                <span
+                  class="text-sm text-red"
+                  v-if="validateError.categoryError"
+                  >{{ validateError.categoryError }}</span
+                >
               </div>
             </label>
           </div>
 
           <div class="row">
             <label for="note" class="flex items-center">
-              <div
-                class="flex items-center flex-none w-10 text-right leading-10 mr-4"
-              >
-                <span class="flex-none w-10 mr-4">
-                  <i class="t2ico t2ico-document text-2xl"></i>
+              <div class="flex-none w-10 mr-4">
+                <span class="flex items-center justify-end text-dark">
+                  <i class="t2ico t2ico-wallet text-2xl"></i>
                 </span>
               </div>
 
@@ -83,7 +90,14 @@
               </div>
 
               <div class="flex-1 py-2 border-b border-gray-100">
-                <div class="text-dark w-full">{{ new Date() }}</div>
+                <div class="text-dark w-full">
+                  <VueDatePicker
+                    v-model="time"
+                    :is-24="false"
+                    show-now-button
+                    format="dd/MM/yyyy hh:mm a"
+                  ></VueDatePicker>
+                </div>
               </div>
             </label>
           </div>
@@ -135,6 +149,7 @@
                     class="text-dark w-full outline-none"
                     type="text"
                     placeholder="Select a location"
+                    v-model="location"
                   />
                 </div>
               </label>
@@ -154,6 +169,7 @@
                     class="text-dark w-full outline-none"
                     type="text"
                     placeholder="With person"
+                    v-model="withPerson"
                   />
                 </div>
               </label>
@@ -191,30 +207,52 @@
           {{ errorFile }}
         </div>
       </div>
-    </template>
 
-    <button type="submit" class="bg-primary text-white">
-      Testing Add Button
-    </button>
+      <div class="row mt-8" v-if="isMoreDetails">
+        <button
+          class="bg-white rounded-lg py-3 w-full text-primary font-semibold"
+          @click="isMoreDetails = false"
+        >
+          Close Details
+        </button>
+      </div>
+    </template>
   </form>
 </template>
 
 <script>
-import { ref } from "vue";
-import { useUser } from "@/composables/useUser";
-import useCollection from "@/composables/useCollection";
+import { ref, watch, inject, onMounted, onUnmounted, reactive } from "vue";
 import { useRouter } from "vue-router";
+import moment from "moment";
+
+import useCollection from "@/composables/useCollection";
+import { useUser } from "@/composables/useUser";
+import { useEmitter } from "@/composables/useEmitter";
+
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 export default {
+  components: { VueDatePicker },
   setup() {
+    const diy = inject("diy");
     const router = useRouter();
-    const isMoreDetails = ref(false);
+    const { emitter } = useEmitter();
     const { error, addRecord } = useCollection();
+    const isMoreDetails = ref(false);
+    const categorySelected = ref("Select a Category");
+    const validateError = reactive({
+      totalError: null,
+      categoryError: null,
+    });
+    const canAdd = ref(false);
 
-    const total = ref(0);
-    const category = ref("");
-    const note = ref("");
-    const time = ref(new Date());
+    const total = ref(diy.getTransactionStore().total);
+    const category = ref(diy.getTransactionStore().category);
+    const note = ref(diy.getTransactionStore().note);
+    const time = ref(diy.getTransactionStore().time);
+    const location = ref(diy.getTransactionStore().location);
+    const withPerson = ref(diy.getTransactionStore().withPerson);
     const file = ref(null);
     const errorFile = ref(null);
 
@@ -224,9 +262,47 @@ export default {
     }
     getValueUser();
 
-    function selectCategory() {
+    function choosedCategory() {
       router.push({ name: "Category", params: {} });
     }
+
+    onMounted(() => {
+      if (diy.getCategorySelected() !== null) {
+        categorySelected.value = diy.getCategorySelected();
+      }
+    });
+
+    watch(category, (newValue, oldValue) => {
+      // Điều khiển logic tại đây
+      console.log(`myVariable đã thay đổi từ ${oldValue} thành ${newValue}`);
+    });
+
+    watch(total, (newValue) => {
+      if (newValue < 0) {
+        validateError.totalError = "Số tiền bị âm";
+        canAdd.value = false;
+      } else {
+        validateError.totalError = null;
+        canAdd.value = true;
+      }
+      diy.updateTotal(newValue);
+    });
+
+    watch(note, (newValue) => {
+      diy.updateNote(newValue);
+    });
+
+    watch(time, (newValue) => {
+      diy.updateTime(newValue);
+    });
+
+    watch(location, (newValue) => {
+      diy.updateLocation(newValue);
+    });
+
+    watch(withPerson, (newValue) => {
+      diy.updateWithPerson(newValue);
+    });
 
     function onChangeFile(event) {
       const selected = event.target.files[0];
@@ -248,25 +324,71 @@ export default {
         total: parseInt(total.value),
         category: category.value,
         note: note.value,
-        time: time.value,
+        time: moment(time.value).format("YYYY-MM-DD HH:mm:ss"),
+        location: location.value,
+        withPerson: withPerson.value,
         userId: user.value.id,
       };
 
-      await addRecord(transaction);
-      console.log(error);
-      console.log("Created");
+      if (total.value == 0) {
+        validateError.totalError = "Bạn phải nhập số tiền";
+        canAdd.value = false;
+      }
+
+      if (!category.value) {
+        validateError.categoryError = "Category is null";
+        canAdd.value = false;
+      }
+
+      if (total.value > 0 && category.value) {
+        canAdd.value = true;
+      }
+
+      if (canAdd.value) {
+        console.log("True");
+        console.log(transaction);
+        await addRecord(transaction);
+        if (!error.value) {
+          diy.setTransactionStore({
+            total: 0,
+            category: 0,
+            note: null,
+            time: new Date(),
+            location: null,
+            withPerson: null,
+          });
+          diy.setCategorySelected(null);
+          router.push({ name: "Home", params: {} });
+        }
+      } else {
+        console.log("False");
+        console.log(transaction);
+      }
     }
+
+    emitter.on("add-transaction", () => {
+      onSubmit();
+    });
+
+    onUnmounted(() => {
+      emitter.off("add-transaction");
+    });
 
     return {
       isMoreDetails,
       total,
       category,
-      selectCategory,
+      choosedCategory,
       note,
       time,
+      location,
+      withPerson,
       onChangeFile,
       errorFile,
+      categorySelected,
+      validateError,
       onSubmit,
+      error,
     };
   },
 };

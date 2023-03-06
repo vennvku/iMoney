@@ -88,9 +88,25 @@ export default {
       emitter.emit("cancel-category");
     }
 
+    function addTransaction() {
+      emitter.emit("add-transaction");
+    }
+
     function handleClickActions(event) {
-      if (event == "cancel") {
-        cancelCategory();
+      // if (event == "cancel") {
+      //   cancelCategory();
+      // }
+
+      switch (event) {
+        case "cancel":
+          cancelCategory();
+          break;
+        case "add":
+          addTransaction();
+          break;
+
+        default:
+          break;
       }
     }
 

@@ -16,7 +16,7 @@ async function signup(email, password, fullName) {
     if (!response) throw new Error("Could not create a new user");
   } catch (err) {
     console.log(err);
-    error.value = err.response.data.message;
+    error.value = err.message;
   } finally {
     isPending.value = false;
   }
