@@ -14,7 +14,7 @@ async function getAllCategory() {
   error.value = null;
 
   try {
-    const response = await AuthServices.getAllCategory();
+    const response = await AuthServices.allCategory();
 
     data.categorys = response.data.categorys;
     data.typeCategorys = response.data.typeCategorys;

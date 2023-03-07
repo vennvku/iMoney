@@ -225,7 +225,7 @@ import { ref, watch, inject, onMounted, onUnmounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
 
-import useCollection from "@/composables/useCollection";
+import { useCollection } from "@/composables/useCollection";
 import { useUser } from "@/composables/useUser";
 import { useEmitter } from "@/composables/useEmitter";
 

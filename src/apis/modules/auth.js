@@ -29,14 +29,19 @@ export default {
       headers: authHeader(),
     });
   },
-  getAllCategory() {
+  allCategory() {
     return Api().get("categorys", {
       headers: authHeader(),
     });
   },
-  transactions(transaction) {
+  createTransactions(transaction) {
     return Api().post("transactions/create", transaction, {
       headers: { ...authHeader() },
+    });
+  },
+  transaction() {
+    return Api().get("transactions", {
+      headers: authHeader(),
     });
   },
 };
