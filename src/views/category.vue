@@ -1,11 +1,11 @@
 <template>
-  <div class="row" v-if="!isPending">
+  <div class="row container mb-20" v-if="!isPending">
     <div
       class="row mt-8"
       v-for="typeCategory in data.typeCategorys"
       :key="typeCategory.id"
     >
-      <div class="px-8 font-thin text-red mb-1">
+      <div class="px-8 font-semibold text-primary mb-1">
         {{ typeCategory.name_typeCategory }}
       </div>
       <div
@@ -25,8 +25,15 @@
         >
           <label for="" class="flex items-center">
             <div class="flex items-center flex-none w-10 leading-10 mr-2">
-              <span class="inline-block w-8 h-8 rounded-full bg-blue-300">
-              </span>
+              <div
+                class="inline-block flex justify-center items-center overflow-hidden w-10 h-10 rounded-full border-green border"
+              >
+                <img
+                  class="w-6 h-6"
+                  :src="'http://venn.com/images/' + category.icon"
+                  :alt="category.name_category"
+                />
+              </div>
             </div>
             <div class="flex-1 py-3 border-b border-gray-100">
               <div class="text-dark w-full">{{ category.name_category }}</div>

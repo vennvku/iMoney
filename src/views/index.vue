@@ -1,4 +1,5 @@
 <template>
+  <!-- Start Total Balance -->
   <div class="row mx-auto text-center p-8">
     <div class="text-3xl font-semibold text-primary">
       {{ totalBalance }}
@@ -6,6 +7,7 @@
     <div class="text-sm font-light text-gray-800 mt-3">Total Balance</div>
   </div>
 
+  <!-- Start Total Income and Expense -->
   <div class="row">
     <div class="container mx-auto px-8 flex justify-between text-white">
       <div class="w-1/2 flex justify-between bg-green rounded-md mr-2 p-2">
@@ -30,6 +32,19 @@
     </div>
   </div>
 
+  <!-- Start Detail Income and Expense -->
+  <div class="row">
+    <div class="container mx-auto p-8">
+      <div class="mb-3">Income and Expense</div>
+      <Tabs :tabs="tabs">
+        <template v-for="(tab, index) in tabs" :key="index" v-slot:[tab.name]>
+          <chart-home :data="tab.data" v-if="tab.data"></chart-home>
+        </template>
+      </Tabs>
+    </div>
+  </div>
+
+  <!-- Start Recent Transaction -->
   <div class="row">
     <div class="container mx-auto p-8">
       <h2 class="font-semibold text-xl text-primary">Recent Transaction</h2>
@@ -42,10 +57,18 @@
           v-for="transactionToday in recentTransaction.today"
           :key="transactionToday.time"
         >
-          <div class="w-11 h-11 rounded bg-orange-500"></div>
+          <div
+            class="flex justify-center items-center overflow-hidden w-11 h-11 rounded border-green border"
+          >
+            <img
+              class="w-6 h-6"
+              :src="'http://venn.com/images/' + transactionToday.icon"
+              :alt="transactionToday.name_category"
+            />
+          </div>
           <div class="flex flex-1 justify-between ml-2">
             <div class="">
-              <div class="font-semibold text-lg">
+              <div class="font-semibold text-base">
                 {{ transactionToday.name_category }}
               </div>
               <div class="font-light text-gray-400 text-xs">Sneaker Nike</div>
@@ -63,7 +86,9 @@
               >
                 - {{ transactionToday.total }}
               </div>
-              <div class="font-light text-gray-400 text-xs">Aug 26</div>
+              <div class="font-light text-gray-400 text-xs">
+                {{ transactionToday.time }}
+              </div>
             </div>
           </div>
         </div>
@@ -77,10 +102,18 @@
           v-for="transactionToday in recentTransaction.yesterday"
           :key="transactionToday.time"
         >
-          <div class="w-11 h-11 rounded bg-orange-500"></div>
+          <div
+            class="flex justify-center items-center overflow-hidden w-11 h-11 rounded border-green border"
+          >
+            <img
+              class="w-6 h-6"
+              :src="'http://venn.com/images/' + transactionToday.icon"
+              :alt="transactionToday.name_category"
+            />
+          </div>
           <div class="flex flex-1 justify-between ml-2">
             <div class="">
-              <div class="font-semibold text-lg">
+              <div class="font-semibold text-base">
                 {{ transactionToday.name_category }}
               </div>
               <div class="font-light text-gray-400 text-xs">Sneaker Nike</div>
@@ -113,15 +146,53 @@
 
 <script>
 import { reactive, computed } from "vue";
-import { useCollection } from "@/composables/useCollection";
 import moment from "moment";
 
+import Tabs from "@/components/Tabs.vue";
+import ChartHome from "@/components/ChartHome.vue";
+
+import { useCollection } from "@/composables/useCollection";
+
 export default {
+  components: {
+    Tabs,
+    ChartHome,
+  },
   setup() {
     const { getTransactions, valueTransaction } = useCollection();
 
+    const tabs = reactive([
+      {
+        name: "tab1",
+        label: "This Month",
+      },
+      {
+        name: "tab2",
+        label: "This Week",
+      },
+      {
+        name: "tab3",
+        label: "Today",
+      },
+    ]);
+
     async function loadValueTransaction() {
-      await getTransactions();
+      const getTransaction = await getTransactions();
+      if (getTransaction) {
+        tabs.map((item) => {
+          if (item.label == "Today") {
+            item.data = getTransaction.reportThisDay;
+          }
+
+          if (item.label == "This Week") {
+            item.data = getTransaction.reportThisWeek;
+          }
+
+          if (item.label == "This Month") {
+            item.data = getTransaction.reportThisMonth;
+          }
+        });
+      }
     }
     loadValueTransaction();
 
@@ -168,7 +239,7 @@ export default {
       }),
     });
 
-    return { totalBalance, totalIncome, totalExpense, recentTransaction };
+    return { totalBalance, totalIncome, totalExpense, recentTransaction, tabs };
   },
 };
 </script>
