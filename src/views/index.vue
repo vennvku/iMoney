@@ -35,7 +35,9 @@
   <!-- Start Detail Income and Expense -->
   <div class="row">
     <div class="container mx-auto p-8">
-      <div class="mb-3">Income and Expense</div>
+      <div class="mb-3 font-semibold text-xl text-primary">
+        Income and Expense
+      </div>
       <Tabs :tabs="tabs">
         <template v-for="(tab, index) in tabs" :key="index" v-slot:[tab.name]>
           <chart-home :data="tab.data" v-if="tab.data"></chart-home>
@@ -56,6 +58,7 @@
           class="row flex bg-white p-3 mt-3 rounded-md"
           v-for="transactionToday in recentTransaction.today"
           :key="transactionToday.time"
+          @click="goToDetailTransaction(transactionToday)"
         >
           <div
             class="flex justify-center items-center overflow-hidden w-11 h-11 rounded border-green border"
@@ -78,16 +81,16 @@
                 class="font-semibold text-lg text-green"
                 v-if="transactionToday.type == 0"
               >
-                + {{ transactionToday.total }}
+                + {{ transactionToday.totalString }}
               </div>
               <div
                 class="font-semibold text-lg text-red"
                 v-if="transactionToday.type == 1"
               >
-                - {{ transactionToday.total }}
+                - {{ transactionToday.totalString }}
               </div>
               <div class="font-light text-gray-400 text-xs">
-                {{ transactionToday.time }}
+                {{ transactionToday.timeString }}
               </div>
             </div>
           </div>
@@ -101,6 +104,7 @@
           class="row flex bg-white p-3 mt-3 rounded-md"
           v-for="transactionToday in recentTransaction.yesterday"
           :key="transactionToday.time"
+          @click="goToDetailTransaction(transactionToday)"
         >
           <div
             class="flex justify-center items-center overflow-hidden w-11 h-11 rounded border-green border"
@@ -123,16 +127,16 @@
                 class="font-semibold text-lg text-green"
                 v-if="transactionToday.type == 0"
               >
-                + {{ transactionToday.total }}
+                + {{ transactionToday.totalString }}
               </div>
               <div
                 class="font-semibold text-lg text-red"
                 v-if="transactionToday.type == 1"
               >
-                - {{ transactionToday.total }}
+                - {{ transactionToday.totalString }}
               </div>
               <div class="font-light text-gray-400 text-xs">
-                {{ transactionToday.time }}
+                {{ transactionToday.timeString }}
               </div>
             </div>
           </div>
@@ -145,8 +149,9 @@
 </template>
 
 <script>
-import { reactive, computed } from "vue";
+import { reactive, computed, inject } from "vue";
 import moment from "moment";
+import { useRouter } from "vue-router";
 
 import Tabs from "@/components/Tabs.vue";
 import ChartHome from "@/components/ChartHome.vue";
@@ -159,7 +164,31 @@ export default {
     ChartHome,
   },
   setup() {
+    const router = useRouter();
     const { getTransactions, valueTransaction } = useCollection();
+
+    const diy = inject("diy");
+
+    function goToDetailTransaction(transaction) {
+      const currentTransaction = {
+        id_transaction: transaction.id_transaction,
+        total: transaction.total,
+        category: transaction.id_category,
+        name_category: transaction.name_category,
+        note: transaction.note,
+        time: transaction.time,
+        location: transaction.location,
+        withPerson: transaction.withPerson,
+        icon: transaction.icon,
+      };
+
+      diy.setTransactionStore(currentTransaction);
+
+      router.push({
+        name: "DetailTransaction",
+        params: {},
+      });
+    }
 
     const tabs = reactive([
       {
@@ -222,7 +251,7 @@ export default {
         const listTodayExists = valueTransaction.transactions != null;
         const listToday = listTodayExists
           ? valueTransaction.transactions.filter(
-              (item) => item.time == moment().format("dddd, DD-MM")
+              (item) => item.timeString == moment().format("dddd, DD-MM")
             )
           : [];
         return listToday;
@@ -232,14 +261,22 @@ export default {
         const listYesterday = listYesterdayExists
           ? valueTransaction.transactions.filter(
               (item) =>
-                item.time == moment().subtract(1, "days").format("dddd, DD-MM")
+                item.timeString ==
+                moment().subtract(1, "days").format("dddd, DD-MM")
             )
           : [];
         return listYesterday;
       }),
     });
 
-    return { totalBalance, totalIncome, totalExpense, recentTransaction, tabs };
+    return {
+      totalBalance,
+      totalIncome,
+      totalExpense,
+      recentTransaction,
+      tabs,
+      goToDetailTransaction,
+    };
   },
 };
 </script>

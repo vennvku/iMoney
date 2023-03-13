@@ -3,6 +3,9 @@
     <div class="container mx-auto px-8">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
+          <div class="" v-if="meta.backActions" @click="actionBack">
+            {{ meta.backActions }}
+          </div>
           <div
             v-if="meta.leading"
             class="w-10 h-10 overflow-hidden rounded-full border-2 border-orange-200"
@@ -14,7 +17,9 @@
               alt="User's Profile Avatar"
             />
           </div>
-          <h1 class="text-xl font-bold text-dark ml-2">{{ meta.text }}</h1>
+          <h1 class="text-xl font-bold text-dark ml-2" v-if="meta.text">
+            {{ meta.text }}
+          </h1>
         </div>
 
         <div class="flex">
@@ -41,7 +46,7 @@
                   class="t2ico text-2xl"
                   :class="action.icon"
                 ></i>
-                <div v-else class="font-thin">
+                <div v-else class="text-base">
                   {{ action.icon }}
                 </div>
               </div>
@@ -66,6 +71,8 @@ export default {
 
     const meta = computed(() => route.meta);
 
+    const backActions = computed(() => route.backActions);
+
     const actions = reactive([
       {
         name: "notification",
@@ -82,6 +89,16 @@ export default {
         icon: "Cancel",
         isIcon: false,
       },
+      {
+        name: "goto-update",
+        icon: "Update",
+        isIcon: false,
+      },
+      {
+        name: "save-update",
+        icon: "Save",
+        isIcon: false,
+      },
     ]);
 
     function cancelCategory() {
@@ -90,6 +107,18 @@ export default {
 
     function addTransaction() {
       emitter.emit("add-transaction");
+    }
+
+    function actionBack() {
+      emitter.emit("action-back");
+    }
+
+    function goToUpdate() {
+      emitter.emit("go-to-update");
+    }
+
+    function saveUpdate() {
+      emitter.emit("save-update");
     }
 
     function handleClickActions(event) {
@@ -104,6 +133,12 @@ export default {
         case "add":
           addTransaction();
           break;
+        case "goto-update":
+          goToUpdate();
+          break;
+        case "save-update":
+          saveUpdate();
+          break;
 
         default:
           break;
@@ -111,13 +146,15 @@ export default {
     }
 
     onUnmounted(() => {
-      console.log("onUnmounted");
+      console.log("Header onUnmounted");
     });
 
     return {
       meta,
       actions,
       handleClickActions,
+      backActions,
+      actionBack,
     };
   },
 };

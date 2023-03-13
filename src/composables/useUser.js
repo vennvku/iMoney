@@ -11,10 +11,14 @@ if (userStorage) {
 
 async function getUser() {
   if (!user.value) {
+    console.log(user);
+
     try {
       const response = await AuthServices.user(userStorage.user.id);
 
       user.value = response.data.user;
+
+      return response.data.user;
     } catch (err) {
       console.log(err.message);
     }

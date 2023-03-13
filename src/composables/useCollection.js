@@ -44,6 +44,42 @@ async function addRecord(transaction) {
   }
 }
 
+async function updateTransaction(transaction) {
+  error.value = null;
+
+  console.log(transaction);
+
+  try {
+    const response = await AuthServices.updateTransactions(
+      transaction.id_transaction,
+      {
+        total: transaction.total,
+        note: transaction.note,
+        time: transaction.time,
+        location: transaction.location,
+        withPerson: transaction.withPerson,
+        category_id: transaction.category,
+      }
+    );
+    return response;
+  } catch (err) {
+    console.log(err);
+    error.value = err.message;
+  }
+}
+
+async function deleteTransaction(id) {
+  error.value = null;
+
+  try {
+    const response = await AuthServices.deleteTransactions(id);
+    return response;
+  } catch (err) {
+    console.log(err);
+    error.value = err.message;
+  }
+}
+
 async function getTransactions() {
   error.value = null;
   valueTransaction.totalTransaction.income = 0;
@@ -75,11 +111,11 @@ async function getTransactions() {
       );
 
       recentTransaction.map((item) => {
-        item.total = item.total.toLocaleString("vi-VN", {
+        item.totalString = item.total.toLocaleString("vi-VN", {
           style: "currency",
           currency: "VND",
         });
-        item.time = moment(item.time).format("dddd, DD-MM");
+        item.timeString = moment(item.time).format("dddd, DD-MM");
         if (item.type == 1) {
           return (item.colorText = "text-red");
         }
@@ -87,6 +123,7 @@ async function getTransactions() {
           return (item.colorText = "text-green");
         }
       });
+
       valueTransaction.transactions = recentTransaction;
 
       const inComeAndExpense = response.data.transactions.map(
@@ -290,12 +327,31 @@ async function getTransactionsReport() {
       ...transaction,
     }));
 
+    detailTransaction.map((item) => {
+      item.total = item.total.toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      });
+      item.time = moment(item.time).format("dddd, DD-MM");
+      if (item.type == 1) {
+        return (item.colorText = "text-red");
+      }
+      if (item.type == 0) {
+        return (item.colorText = "text-green");
+      }
+    });
+
     const groupedDetailTransaction = detailTransaction.reduce(
       (result, transaction) => {
+        if (!result["All"]) {
+          result["All"] = [];
+        }
+
         if (!result[transaction.name_typeCategory]) {
           result[transaction.name_typeCategory] = [];
         }
 
+        result["All"].push(transaction);
         result[transaction.name_typeCategory].push(transaction);
 
         return result;
@@ -303,18 +359,9 @@ async function getTransactionsReport() {
       {}
     );
 
-    console.log(detailTransaction);
-
-    // for (let key in groupedDetailTransaction) {
-    //   console.log(key + ": " + groupedDetailTransaction[key]);
-    //   groupedDetailTransaction[key].forEach((element) => {
-    //     console.log(element);
-    //   });
-    // }
+    console.log(groupedDetailTransaction);
 
     dataReport.detailTransaction = groupedDetailTransaction;
-
-    //console.log(groupedDetailTransaction);
 
     return response;
   } catch (err) {
@@ -326,6 +373,8 @@ async function getTransactionsReport() {
 export function useCollection() {
   return {
     addRecord,
+    updateTransaction,
+    deleteTransaction,
     getTransactions,
     valueTransaction,
     getTransactionsReport,

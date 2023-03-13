@@ -44,4 +44,16 @@ export default {
       headers: authHeader(),
     });
   },
+  updateTransactions(id, transaction) {
+    return Api().put("transactions/update/" + id, transaction, {
+      headers: { ...authHeader() },
+    });
+  },
+  deleteTransactions(id) {
+    return Api().delete("transactions/" + id, {
+      headers: {
+        ...authHeader(),
+      },
+    });
+  },
 };

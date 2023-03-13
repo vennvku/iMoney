@@ -17,6 +17,11 @@
               autocomplete="username"
               v-model="email"
             />
+            <span
+              class="font-semibold pt-1 text-red text-sm"
+              v-if="inputError.emailError"
+              >{{ inputError.emailError }}</span
+            >
           </label>
         </div>
         <div class="row">
@@ -30,6 +35,11 @@
               autocomplete="current-password"
               v-model="password"
             />
+            <span
+              class="font-semibold pt-1 text-red text-sm"
+              v-if="inputError.passwordError"
+              >{{ inputError.passwordError }}</span
+            >
           </label>
         </div>
         <div class="row">
@@ -72,27 +82,73 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import { useSignIn } from "@/composables/useSignIn";
 
 export default {
   setup() {
+    const router = useRouter();
+
     const { error, isPending, user, signin } = useSignIn();
     const email = ref("");
     const password = ref("");
 
-    const router = useRouter();
+    const inputError = reactive({
+      emailError: null,
+      passwordError: null,
+    });
+
+    watch(email, (newValue) => {
+      if (newValue !== "") {
+        let re =
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+        if (!re.test(newValue)) {
+          inputError.emailError = "Email không hợp lệ !!!";
+        } else {
+          inputError.emailError = null;
+        }
+      } else {
+        inputError.emailError = null;
+      }
+    });
+
+    watch(password, (newValue) => {
+      if (newValue == "") {
+        inputError.passwordError = "Mật khẩu không được để trống";
+      } else {
+        inputError.passwordError = null;
+      }
+    });
 
     async function onSubmit() {
-      await signin(email.value, password.value);
-      if (!error.value) {
-        localStorage.setItem("user", JSON.stringify(user.value));
-        router.push({ name: "Profile", params: {} });
+      if (email.value == "") {
+        inputError.emailError = "Email không được để trống !!!";
+      }
+
+      if (password.value == "") {
+        inputError.passwordError = "Mật khẩu không được để trống !!!";
+      }
+
+      if (inputError.emailError == null && inputError.passwordError == null) {
+        await signin(email.value, password.value);
+        if (!error.value) {
+          localStorage.setItem("user", JSON.stringify(user.value));
+          router.push({ name: "Profile", params: {} });
+        }
       }
     }
-    return { email, password, error, isPending, onSubmit };
+
+    return {
+      email,
+      password,
+      error,
+      isPending,
+      onSubmit,
+      inputError,
+    };
   },
 };
 </script>

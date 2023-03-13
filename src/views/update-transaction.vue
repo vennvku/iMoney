@@ -222,13 +222,12 @@
 </template>
 
 <script>
-import { ref, watch, inject, onMounted, onUnmounted, reactive } from "vue";
-import { onBeforeRouteLeave, useRouter } from "vue-router";
+import { ref, reactive, inject, watch, onMounted, onUnmounted } from "vue";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
+import { useEmitter } from "@/composables/useEmitter";
 import moment from "moment";
 
 import { useCollection } from "@/composables/useCollection";
-import { useUser } from "@/composables/useUser";
-import { useEmitter } from "@/composables/useEmitter";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
@@ -236,12 +235,14 @@ import "@vuepic/vue-datepicker/dist/main.css";
 export default {
   components: { VueDatePicker },
   setup() {
-    const diy = inject("diy");
     const router = useRouter();
     const { emitter } = useEmitter();
-    const { error, addRecord } = useCollection();
+    const diy = inject("diy");
+
+    const { error, updateTransaction } = useCollection();
+
     const isMoreDetails = ref(false);
-    const categorySelected = ref("Select a Category");
+    const categorySelected = ref(diy.getTransactionStore().name_category);
     const validateError = reactive({
       totalError: null,
       categoryError: null,
@@ -254,14 +255,10 @@ export default {
     const time = ref(diy.getTransactionStore().time);
     const location = ref(diy.getTransactionStore().location);
     const withPerson = ref(diy.getTransactionStore().withPerson);
-    const file = ref(null);
-    const errorFile = ref(null);
 
-    const { user, getUser } = useUser();
-    async function getValueUser() {
-      await getUser();
+    if (location.value !== null || withPerson.value !== null) {
+      isMoreDetails.value = true;
     }
-    getValueUser();
 
     function choosedCategory() {
       router.push({ name: "Category", params: {} });
@@ -300,20 +297,9 @@ export default {
       diy.updateWithPerson(newValue);
     });
 
-    function onChangeFile(event) {
-      const selected = event.target.files[0];
-      const typesFile = ["image/png", "img/jpg"];
-
-      if (selected && typesFile.includes(selected.type)) {
-        file.value = selected;
-
-        console.log(file.value);
-      } else {
-        file.value = null;
-        errorFile.value = "Please select a file type PNG or JPG";
-        console.log(errorFile.value);
-      }
-    }
+    emitter.on("save-update", () => {
+      onSubmit();
+    });
 
     async function onSubmit() {
       const transaction = {
@@ -323,7 +309,7 @@ export default {
         time: moment(time.value).format("YYYY-MM-DD HH:mm:ss"),
         location: location.value,
         withPerson: withPerson.value,
-        userId: user.value.id,
+        id_transaction: diy.getTransactionStore().id_transaction,
       };
 
       if (total.value == null || total.value == "") {
@@ -342,25 +328,34 @@ export default {
 
       if (canAdd.value) {
         console.log("True");
-        console.log(transaction);
-        await addRecord(transaction);
-        if (!error.value) {
-          diy.resetTransactionStore();
-          router.push({ name: "Home", params: {} });
+
+        const transUpdate = await updateTransaction(transaction);
+
+        if (transUpdate) {
+          if (transUpdate.data.status == true) {
+            diy.resetTransactionStore();
+            router.push({ name: "Home", params: {} });
+          }
         }
+
+        //await addRecord(transaction);
+        // if (!error.value) {
+        //   diy.setTransactionStore({
+        //     total: 0,
+        //     category: 0,
+        //     note: null,
+        //     time: new Date(),
+        //     location: null,
+        //     withPerson: null,
+        //   });
+        //   diy.setCategorySelected(null);
+        //   router.push({ name: "Home", params: {} });
+        // }
       } else {
         console.log("False");
         console.log(transaction);
       }
     }
-
-    emitter.on("add-transaction", () => {
-      onSubmit();
-    });
-
-    onUnmounted(() => {
-      emitter.off("add-transaction");
-    });
 
     onBeforeRouteLeave((to, from, next) => {
       if (to.name !== "Category") {
@@ -369,20 +364,21 @@ export default {
       next();
     });
 
+    onUnmounted(() => {
+      emitter.off("save-update");
+    });
+
     return {
       isMoreDetails,
       total,
       category,
-      choosedCategory,
       note,
       time,
       location,
       withPerson,
-      onChangeFile,
-      errorFile,
       categorySelected,
       validateError,
-      onSubmit,
+      choosedCategory,
       error,
     };
   },

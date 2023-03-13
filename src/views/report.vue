@@ -79,31 +79,19 @@ export default {
 
     const tabs = reactive([]);
 
-    console.log(tabs);
-
-    //const tabs = [];
-
-    // dataReport.detailTransaction.forEach((element) => {
-    //   console.log(element);
-    //   console.log("123");
-    // });
-
     onMounted(async () => {
       await getTransactionsReport();
 
-      //console.log(dataReport.detailTransaction);
-
-      let a = 1;
+      let index = 0;
 
       for (let key in dataReport.detailTransaction) {
         //console.log(key + ": " + dataReport.detailTransaction[key]);
         const trans = {
-          name: "tab" + a,
+          name: "tab" + index++,
           label: key,
           data: dataReport.detailTransaction[key],
         };
         tabs.push(trans);
-        a++;
       }
 
       //console.log(tabs);

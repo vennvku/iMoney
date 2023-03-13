@@ -20,6 +20,7 @@ const routes = [
     },
     component: () =>
       import(/* webpackChunkName: "home" */ "../views/index.vue"),
+    beforeEnter: requireAuth,
   },
   {
     path: "/register",
@@ -95,6 +96,7 @@ const routes = [
       import(
         /* webpackChunkName: "transaction" */ "../views/new-transaction.vue"
       ),
+    beforeEnter: requireAuth,
   },
   {
     path: "/category",
@@ -107,6 +109,37 @@ const routes = [
     },
     component: () =>
       import(/* webpackChunkName: "category" */ "../views/category.vue"),
+    beforeEnter: requireAuth,
+  },
+  {
+    path: "/detail-transaction",
+    name: "DetailTransaction",
+    meta: {
+      backActions: "Đóng",
+      leading: false,
+      actions: "goto-update",
+      isShowFooter: false,
+    },
+    component: () =>
+      import(
+        /* webpackChunkName: "detailtransaction" */ "../views/detail-transaction.vue"
+      ),
+    beforeEnter: requireAuth,
+  },
+  {
+    path: "/update-transaction",
+    name: "UpdateTransaction",
+    meta: {
+      text: "Update Transaction",
+      leading: false,
+      actions: "save-update",
+      isShowFooter: true,
+    },
+    component: () =>
+      import(
+        /* webpackChunkName: "transaction" */ "../views/update-transaction.vue"
+      ),
+    beforeEnter: requireAuth,
   },
 ];
 

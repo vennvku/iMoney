@@ -72,7 +72,7 @@ export default {
     getDataCategory();
 
     function choosedCategory(e) {
-      diy.setCategorySelected(e.name);
+      diy.updateNameCategory(e.name);
       diy.updateCategory(e.id);
       router.back();
     }
