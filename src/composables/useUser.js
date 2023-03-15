@@ -11,8 +11,6 @@ if (userStorage) {
 
 async function getUser() {
   if (!user.value) {
-    console.log(user);
-
     try {
       const response = await AuthServices.user(userStorage.user.id);
 
@@ -22,6 +20,8 @@ async function getUser() {
     } catch (err) {
       console.log(err.message);
     }
+  } else {
+    return user.value;
   }
 }
 

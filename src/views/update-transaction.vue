@@ -37,8 +37,13 @@
                 class="flex items-center flex-none w-10 text-right leading-10 mr-4"
               >
                 <span
-                  class="inline-block ml-auto w-8 h-8 rounded-full bg-blue-300"
+                  class="inline-block flex justify-center items-center ml-auto w-10 h-10 rounded-full border-green border"
                 >
+                  <img
+                    class="w-6 h-6"
+                    :src="'http://venn.com/images/' + icon"
+                    alt="Image"
+                  />
                 </span>
               </div>
 
@@ -250,6 +255,7 @@ export default {
     const canAdd = ref(false);
 
     const total = ref(diy.getTransactionStore().total);
+    const icon = ref(diy.getTransactionStore().icon);
     const category = ref(diy.getTransactionStore().category);
     const note = ref(diy.getTransactionStore().note);
     const time = ref(diy.getTransactionStore().time);
@@ -337,20 +343,6 @@ export default {
             router.push({ name: "Home", params: {} });
           }
         }
-
-        //await addRecord(transaction);
-        // if (!error.value) {
-        //   diy.setTransactionStore({
-        //     total: 0,
-        //     category: 0,
-        //     note: null,
-        //     time: new Date(),
-        //     location: null,
-        //     withPerson: null,
-        //   });
-        //   diy.setCategorySelected(null);
-        //   router.push({ name: "Home", params: {} });
-        // }
       } else {
         console.log("False");
         console.log(transaction);
@@ -371,6 +363,7 @@ export default {
     return {
       isMoreDetails,
       total,
+      icon,
       category,
       note,
       time,

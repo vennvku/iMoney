@@ -65,6 +65,7 @@ export default {
     const profileOptions = reactive(PROFILE_OPTIONS);
 
     const { user, getUser } = useUser();
+
     async function getValueUser() {
       await getUser();
     }

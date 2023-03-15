@@ -3,8 +3,26 @@
     <div class="container mx-auto px-8">
       <div class="flex justify-between items-center">
         <div class="flex items-center">
-          <div class="" v-if="meta.backActions" @click="actionBack">
-            {{ meta.backActions }}
+          <div class="mr-5" v-if="meta.backActions">
+            <div
+              v-for="backAction in backActions"
+              :key="backAction.name"
+              @click="handleActionBack(backAction.name)"
+            >
+              <div
+                class="icon-back-action mr-3"
+                v-if="backAction.name == meta.backActions"
+              >
+                <i
+                  v-if="backAction.isIcon"
+                  class="t2ico text-2xl"
+                  :class="backAction.icon"
+                ></i>
+                <div v-else class="text-base">
+                  {{ backAction.icon }}
+                </div>
+              </div>
+            </div>
           </div>
           <div
             v-if="meta.leading"
@@ -71,7 +89,23 @@ export default {
 
     const meta = computed(() => route.meta);
 
-    const backActions = computed(() => route.backActions);
+    const backActions = reactive([
+      {
+        name: "back-category",
+        icon: "t2ico-arrow-right",
+        isIcon: true,
+      },
+      {
+        name: "back-detail-category",
+        icon: "t2ico-arrow-right",
+        isIcon: true,
+      },
+      {
+        name: "back-detail-transaction",
+        icon: "t2ico-arrow-right",
+        isIcon: true,
+      },
+    ]);
 
     const actions = reactive([
       {
@@ -85,8 +119,8 @@ export default {
         isIcon: false,
       },
       {
-        name: "cancel",
-        icon: "Cancel",
+        name: "detail-category",
+        icon: "Edit",
         isIcon: false,
       },
       {
@@ -101,16 +135,12 @@ export default {
       },
     ]);
 
-    function cancelCategory() {
-      emitter.emit("cancel-category");
+    function detailCategory() {
+      emitter.emit("detail-category");
     }
 
     function addTransaction() {
       emitter.emit("add-transaction");
-    }
-
-    function actionBack() {
-      emitter.emit("action-back");
     }
 
     function goToUpdate() {
@@ -121,14 +151,43 @@ export default {
       emitter.emit("save-update");
     }
 
+    function actionBackCateogry() {
+      emitter.emit("action-back-category");
+    }
+
+    function actionBackDetailCateogry() {
+      emitter.emit("action-back-category");
+    }
+
+    function actionBackDetailTransacion() {
+      emitter.emit("action-back-detail-transaction");
+    }
+
+    function handleActionBack(event) {
+      switch (event) {
+        case "back-category":
+          actionBackCateogry();
+          break;
+        case "back-detail-category":
+          actionBackDetailCateogry();
+          break;
+        case "back-detail-transaction":
+          actionBackDetailTransacion();
+          break;
+
+        default:
+          break;
+      }
+    }
+
     function handleClickActions(event) {
       // if (event == "cancel") {
       //   cancelCategory();
       // }
 
       switch (event) {
-        case "cancel":
-          cancelCategory();
+        case "detail-category":
+          detailCategory();
           break;
         case "add":
           addTransaction();
@@ -154,8 +213,14 @@ export default {
       actions,
       handleClickActions,
       backActions,
-      actionBack,
+      handleActionBack,
     };
   },
 };
 </script>
+
+<style scoped>
+.icon-back-action {
+  transform: scaleX(-1);
+}
+</style>

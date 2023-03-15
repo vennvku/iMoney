@@ -102,9 +102,9 @@ const routes = [
     path: "/category",
     name: "Category",
     meta: {
+      backActions: "back-category",
       text: "Select a Category",
       leading: false,
-      actions: "cancel",
       isShowFooter: false,
     },
     component: () =>
@@ -112,10 +112,23 @@ const routes = [
     beforeEnter: requireAuth,
   },
   {
+    path: "/detail-category",
+    name: "DetailCategory",
+    meta: {
+      backActions: "back-detail-category",
+      text: "List of Category",
+      leading: false,
+      isShowFooter: false,
+    },
+    component: () =>
+      import(/* webpackChunkName: "category" */ "../views/detail-category.vue"),
+    beforeEnter: requireAuth,
+  },
+  {
     path: "/detail-transaction",
     name: "DetailTransaction",
     meta: {
-      backActions: "Đóng",
+      backActions: "back-detail-transaction",
       leading: false,
       actions: "goto-update",
       isShowFooter: false,

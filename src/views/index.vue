@@ -4,7 +4,7 @@
     <div class="text-3xl font-semibold text-primary">
       {{ totalBalance }}
     </div>
-    <div class="text-sm font-light text-gray-800 mt-3">Total Balance</div>
+    <div class="text-sm font-semibold text-gray-800 mt-3">Total Balance</div>
   </div>
 
   <!-- Start Total Income and Expense -->

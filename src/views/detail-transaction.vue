@@ -120,9 +120,8 @@ export default {
       }
     }
 
-    emitter.on("action-back", () => {
+    emitter.on("action-back-detail-transaction", () => {
       router.back();
-      console.log("Back");
     });
 
     emitter.on("go-to-update", () => {
@@ -137,7 +136,7 @@ export default {
     });
 
     onUnmounted(() => {
-      emitter.off("action-back");
+      emitter.off("action-back-detail-transaction");
       emitter.off("go-to-update");
     });
 

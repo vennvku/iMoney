@@ -20,6 +20,8 @@ async function getAllCategory() {
     data.typeCategorys = response.data.typeCategorys;
 
     if (!response) throw new Error("Could not get Category");
+
+    return data;
   } catch (err) {
     console.log(err);
     error.value = err.message;

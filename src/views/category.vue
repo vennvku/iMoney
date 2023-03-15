@@ -1,5 +1,18 @@
 <template>
   <div class="row container mb-20" v-if="!isPending">
+    <div class="row mx-3 relative">
+      <img
+        class="absolute top-1.5 left-2 w-6 h-6"
+        src="@/assets/images/search.png"
+        alt="Icon Search"
+      />
+      <input
+        class="w-full h-9 rounded-2xl bg-gray-200 pl-9 pr-3 outline-none"
+        type="text"
+        v-model="searchCategory"
+        placeholder="Enter Category Name"
+      />
+    </div>
     <div
       class="row mt-8"
       v-for="typeCategory in data.typeCategorys"
@@ -10,11 +23,12 @@
       </div>
       <div
         class="container mx-auto bg-white px-8"
-        v-for="category in data.categorys"
+        v-for="category in categoryFillter"
         :key="category.id"
         @click="
           choosedCategory({
             id: category.id,
+            icon: category.icon,
             name: category.name_category,
           })
         "
@@ -47,7 +61,7 @@
 </template>
 
 <script>
-import { onUnmounted, inject } from "vue";
+import { ref, reactive, computed, onUnmounted, inject } from "vue";
 import { useRouter } from "vue-router";
 
 import { useEmitter } from "@/composables/useEmitter";
@@ -59,29 +73,61 @@ export default {
     const { emitter } = useEmitter();
     const diy = inject("diy");
 
+    const searchCategory = ref("");
+
     const { error, isPending, data, getAllCategory } = useCategory();
 
-    emitter.on("cancel-category", () => {
+    emitter.on("action-back-category", () => {
       router.push({ name: "NewTransaction", params: {} });
-      console.log("Cliked!!");
+    });
+
+    emitter.on("detail-category", () => {
+      router.push({ name: "DetailCategory", params: {} });
+    });
+
+    const listCategory = reactive({
+      typeCategorys: [],
+      categorys: [],
     });
 
     async function getDataCategory() {
-      await getAllCategory();
+      const allCategory = await getAllCategory();
+
+      if (allCategory) {
+        listCategory.typeCategorys = allCategory.typeCategorys;
+        listCategory.categorys = allCategory.categorys;
+      }
     }
     getDataCategory();
 
+    const categoryFillter = computed(() =>
+      listCategory.categorys.filter((category) => {
+        const name = category.name_category.toLowerCase();
+        return name.includes(searchCategory.value.toLowerCase());
+      })
+    );
+
     function choosedCategory(e) {
       diy.updateNameCategory(e.name);
+      diy.updateIcon(e.icon);
       diy.updateCategory(e.id);
       router.back();
     }
 
     onUnmounted(() => {
-      emitter.off("cancel-category");
+      emitter.off("action-back-category");
+      emitter.off("detail-category");
     });
 
-    return { error, isPending, data, choosedCategory };
+    return {
+      error,
+      isPending,
+      data,
+      searchCategory,
+      listCategory,
+      categoryFillter,
+      choosedCategory,
+    };
   },
 };
 </script>

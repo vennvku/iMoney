@@ -17,7 +17,7 @@ export default {
       await logout();
 
       if (!error.value) {
-        localStorage.removeItem("user");
+        localStorage.clear();
         router.push({ name: "Login", params: {} });
       }
     }
